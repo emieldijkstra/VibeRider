@@ -12,41 +12,46 @@ class MenuScene extends Phaser.Scene {
     }
 
     create() {
-        console.log('MenuScene created');
+        console.log('🎮 MenuScene created');
         
-        this.cameras.main.setBackgroundColor('#001a2e');
-        
-        // Apply default theme
-        document.body.className = 'theme-cyborgrid';
+        const W = this.game.config.width;
+        const H = this.game.config.height;
 
-        // Add title with glow effect
-        const title = this.add.text(
-            this.game.config.width / 2,
-            this.game.config.height / 4,
-            'VIBRIDER',
-            {
-                font: 'bold 120px Space Grotesk',
-                fill: '#00ffff',
-                align: 'center',
-                shadow: { offsetX: 2, offsetY: 2, color: '#ff00ff', blur: 15, fill: true }
-            }
-        );
-        title.setOrigin(0.5, 0.5);
-        title.setDepth(10);
+        // ── Background (Geometry Dash dark theme) ────────────────
+        this.add.rectangle(W / 2, H / 2, W, H, 0x1a1a2e).setOrigin(0.5, 0.5);
         
-        // Add subtitle
-        const subtitle = this.add.text(
-            this.game.config.width / 2,
-            this.game.config.height / 4 + 100,
-            'Spotify Rhythm Game',
-            {
-                font: '32px Space Grotesk',
-                fill: '#b0b0b0',
-                align: 'center'
+        // ── Geometric pattern in background ──────────────────────
+        const g = this.add.graphics();
+        g.lineStyle(2, 0xffd700, 0.15);
+        for (let x = 0; x < W; x += 120) {
+            for (let y = 0; y < H; y += 120) {
+                g.strokeRect(x, y, 100, 100);
             }
-        );
-        subtitle.setOrigin(0.5, 0.5);
-        subtitle.setDepth(10);
+        }
+        g.setDepth(0);
+        
+        // ── Title with glow ────────────────────────────────────────
+        const title = this.add.text(W / 2, H / 3, 'VIBRIDER', {
+            font: 'bold 140px Space Grotesk',
+            fill: '#FFD700',
+            align: 'center',
+            stroke: '#FF69B4',
+            strokeThickness: 3
+        }).setOrigin(0.5, 0.5).setDepth(10);
+        
+        // ── Geometric title box ───────────────────────────────────
+        this.add.rectangle(W / 2, H / 3 - 15, 650, 140, 0x22B14C)
+            .setOrigin(0.5, 0.5)
+            .setAlpha(0.2)
+            .setStrokeStyle(4, 0xFFD700, 1)
+            .setDepth(5);
+        
+        // ── Subtitle ──────────────────────────────────────────────
+        const subtitle = this.add.text(W / 2, H / 3 + 100, '♪ Spotify Rhythm Runner ♪', {
+            font: 'bold 36px Space Grotesk',
+            fill: '#22B14C',
+            align: 'center'
+        }).setOrigin(0.5, 0.5).setDepth(10);
 
         // Check authentication status
         this.checkAuthStatus();
@@ -84,95 +89,73 @@ class MenuScene extends Phaser.Scene {
     }
 
     /**
-     * Create and display login button
+     * Create and display login button (Geometry Dash style)
      */
     createLoginButton() {
-        console.log('Creating login button');
+        console.log('🔐 Creating login button');
         
-        const buttonGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+        const W = this.game.config.width;
+        const H = this.game.config.height;
+        const buttonX = W / 2;
+        const buttonY = H / 2 + 120;
+        const buttonWidth = 380;
+        const buttonHeight = 90;
         
-        // Create login button
-        const buttonX = this.game.config.width / 2;
-        const buttonY = this.game.config.height / 2 + 100;
-        const buttonWidth = 300;
-        const buttonHeight = 80;
-        
-        // Button background (transparent initially)
-        const button = this.add.zone(buttonX, buttonY, buttonWidth, buttonHeight);
-        button.setInteractive({ useHandCursor: true });
-        
-        // Button border
-        const border = this.add.rectangle(
-            buttonX,
-            buttonY,
-            buttonWidth,
-            buttonHeight,
-            0x00ffff,
-            0
-        );
-        border.setStrokeStyle(3, 0x00ffff);
-        border.setDepth(15);
+        // Button background box (geometric)
+        const buttonBg = this.add.rectangle(buttonX, buttonY, buttonWidth, buttonHeight, 0x22B14C, 0.8)
+            .setStrokeStyle(4, 0xFFD700, 1)
+            .setDepth(15);
         
         // Button text
-        const buttonText = this.add.text(
-            buttonX,
-            buttonY,
-            'LOGIN WITH SPOTIFY',
-            {
-                font: 'bold 24px Space Grotesk',
-                fill: '#00ffff',
-                align: 'center'
-            }
-        );
-        buttonText.setOrigin(0.5, 0.5);
-        buttonText.setDepth(16);
+        const buttonText = this.add.text(buttonX, buttonY, '► LOGIN WITH SPOTIFY ◄', {
+            font: 'bold 28px Space Grotesk',
+            fill: '#FFFFFF',
+            align: 'center'
+        }).setOrigin(0.5, 0.5).setDepth(16);
 
-        // Interactive events
-        button.on('pointerover', () => {
-            border.setStrokeStyle(3, 0xff00ff);
-            buttonText.setFill('#ff00ff');
-            border.setScale(1.1);
+        // Make button interactive
+        buttonBg.setInteractive({ useHandCursor: true });
+
+        buttonBg.on('pointerover', () => {
             this.tweens.add({
-                targets: [border, buttonText],
-                duration: 200,
+                targets: [buttonBg],
+                scaleX: 1.08,
+                scaleY: 1.08,
+                duration: 150,
                 ease: 'Quad.easeOut'
             });
+            buttonBg.setStrokeStyle(4, 0xFF69B4, 1);
+            buttonText.setFill('#FFD700');
         });
 
-        button.on('pointerout', () => {
-            border.setStrokeStyle(3, 0x00ffff);
-            buttonText.setFill('#00ffff');
-            border.setScale(1);
+        buttonBg.on('pointerout', () => {
+            this.tweens.add({
+                targets: [buttonBg],
+                scaleX: 1,
+                scaleY: 1,
+                duration: 150,
+                ease: 'Quad.easeOut'
+            });
+            buttonBg.setStrokeStyle(4, 0xFFD700, 1);
+            buttonText.setFill('#FFFFFF');
         });
 
-        button.on('pointerdown', () => {
-            console.log('Login button clicked');
-            border.setScale(0.95);
+        buttonBg.on('pointerdown', () => {
+            console.log('🎮 Login button clicked');
+            buttonBg.setScale(0.95);
             SpotifyAuth.initiateLogin();
         });
 
-        // Add decorative elements
-        this.createDecorations();
+        // Decorative side boxes
+        const boxSize = 60;
+        const boxGap = 120;
+        this.add.rectangle(buttonX - buttonWidth / 2 - boxGap, buttonY, boxSize, boxSize, 0xFF69B4)
+            .setStrokeStyle(3, 0xFFD700, 0.6)
+            .setDepth(14);
+        this.add.rectangle(buttonX + buttonWidth / 2 + boxGap, buttonY, boxSize, boxSize, 0xFF69B4)
+            .setStrokeStyle(3, 0xFFD700, 0.6)
+            .setDepth(14);
     }
-
-    /**
-     * Create decorative visual elements
-     */
-    createDecorations() {
-        const width = this.game.config.width;
-        const height = this.game.config.height;
-        
-        // Add animated grid lines
-        const graphics = this.make.graphics({ x: 0, y: 0, add: true });
-        graphics.lineStyle(1, 0x00ffff, 0.1);
-        graphics.setDepth(0);
-        
-        // Vertical lines
-        for (let i = 0; i < width; i += 100) {
-            graphics.beginPath();
-            graphics.moveTo(i, 0);
-            graphics.lineTo(i, height);
-            graphics.strokePath();
         }
         
         // Horizontal lines

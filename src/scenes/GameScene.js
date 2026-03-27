@@ -36,16 +36,21 @@ class GameScene extends Phaser.Scene {
         const H = this.scale.height;
 
         // ── Background ───────────────────────────────────────────
-        this.createBackground(W, H);
+        // Create a repeating background that extends far to the right
+        this.createBackground(W, H, 5000); // 5000px wide for scrolling
 
-        // ── Player (flying character, nice big and visible) ───────
-        this.player = new Player(this, 200, H / 2.5);
+        // ── Player (left side of screen, Geometry Dash style) ──────
+        this.player = new Player(this, 150, H / 2);
+
+        // ── Camera follows player horizontally ────────────────────
+        this.cameras.main.setBounds(0, 0, 20000, H);
+        this.cameras.main.startFollow(this.player.body, true, 0.3, 0, -200, 0);
 
         // ── Sync Engine ──────────────────────────────────────────
         this.syncEngine = new SyncEngine(this);
 
-        // ── HUD Background (semi-transparent bar) ──────────────────
-        const hudBg = this.add.rectangle(0, 0, W, 100, 0x000000, 0.3).setOrigin(0, 0).setDepth(10);
+        // ── HUD (fixed to camera, stays on screen) ──────────────────
+        const hudBg = this.add.rectangle(0, 0, W, 100, 0x000000, 0.4).setOrigin(0, 0).setDepth(10).setScrollFactor(0);
 
         // ── HUD Title ────────────────────────────────────────────
         this.trackText = this.add.text(W / 2, 12,
@@ -87,48 +92,37 @@ class GameScene extends Phaser.Scene {
     }
 
     // ────────────────────────────────────────────────────────────
-    // Create beautiful background with sky, clouds, ground
+    // Create Geometry Dash style scrolling background
     // ────────────────────────────────────────────────────────────
-    createBackground(W, H) {
-        // Sky gradient (light blue to lighter blue)
-        this.add.rectangle(W / 2, 0, W, H * 0.7, 0x87CEEB).setOrigin(0, 0);
-        this.add.rectangle(W / 2, H * 0.7, W, H * 0.3, 0xE0F6FF).setOrigin(0, 0);
+    createBackground(W, H, scrollWidth) {
+        // Sky gradient
+        const skyGradient = this.make.graphics({ x: 0, y: 0, add: false });
+        skyGradient.fillStyle(0x87CEEB, 1);
+        skyGradient.fillRect(0, 0, scrollWidth, H * 0.7);
+        skyGradient.fillStyle(0xE0F6FF, 1);
+        skyGradient.fillRect(0, H * 0.7, scrollWidth, H * 0.3);
+        skyGradient.generateTexture('skyTexture', scrollWidth, H);
+        skyGradient.destroy();
         
-        // Far mountains (very light, parallax effect later)
-        this.createMountain(0, H * 0.5, W, 150, 0xA8D5BA, 0.3);
-        this.createMountain(W * 0.3, H * 0.45, W, 200, 0x73C6B6, 0.4);
+        this.add.image(scrollWidth / 2, H / 2, 'skyTexture').setOrigin(0.5, 0.5);
+
+        // Repeating ground pattern (Geometry Dash style)
+        const groundColor = 0x1a1a2e;
+        const lineColor = 0xffd700;
+        const groundY = H - 60;
         
-        // Clouds (static, decorative)
-        this.createCloud(W * 0.15, H * 0.15, 80, 0xFFFFFF, 0.8);
-        this.createCloud(W * 0.75, H * 0.2, 100, 0xFFFFFF, 0.7);
-        this.createCloud(W * 0.5, H * 0.35, 120, 0xFFFFFF, 0.6);
-        
-        // Ground/terrain at bottom
-        this.add.rectangle(W / 2, H - 60, W, 120, 0x8B7355).setOrigin(0.5, 0);
-        this.add.rectangle(W / 2, H - 55, W, 30, 0xA0826D).setOrigin(0.5, 0);
-        
+        // Multiple ground blocks
+        const blockWidth = 100;
+        const blockGap = 5;
+        for (let x = 0; x < scrollWidth; x += blockWidth + blockGap) {
+            this.add.rectangle(x + blockWidth / 2, groundY, blockWidth, 60, groundColor)
+                .setOrigin(0, 0.5)
+                .setStrokeStyle(2, lineColor, 0.6);
+        }
+
         // Grass line
-        this.add.rectangle(W / 2, H - 60, W, 8, 0x22B14C).setOrigin(0.5, 0);
-    }
-
-    createMountain(x, y, width, height, color, alpha) {
-        const polygon = this.add.polygon(x + width / 2, y, [
-            0, height,           // bottom left
-            width / 2, -height,  // peak
-            width, height        // bottom right
-        ], color);
-        polygon.setAlpha(alpha);
-    }
-
-    createCloud(x, y, width, color, alpha) {
-        const g = this.add.graphics();
-        // Use numeric color value directly
-        g.fillStyle(color, alpha);
-        // Cloud shape made of circles
-        g.fillCircle(x, y, width * 0.3);
-        g.fillCircle(x + width * 0.2, y - width * 0.1, width * 0.35);
-        g.fillCircle(x + width * 0.4, y, width * 0.3);
-        g.fillCircle(x - width * 0.2, y, width * 0.25);
+        this.add.rectangle(scrollWidth / 2, H - 60, scrollWidth, 8, 0x22B14C)
+            .setOrigin(0.5, 0);
     }
 
     // ────────────────────────────────────────────────────────────
@@ -160,11 +154,12 @@ class GameScene extends Phaser.Scene {
         if (this.spawnedIds.has(obstacleData.id)) return;
         this.spawnedIds.add(obstacleData.id);
 
-        const W = this.scale.width;
+        // Spawn obstacles ahead of player to the right
+        // Player starts at x=150, obstacles spawn progressively further right
+        const spawnX = this.player.body.x + 1500 + obstacleData.id * 300;
         const gapY = obstacleData.gapY;
 
-        // Spawn pipe pair at right edge with specified gap Y position
-        const piping = new Obstacle(this, W + 100, gapY, obstacleData);
+        const piping = new Obstacle(this, spawnX, gapY, obstacleData);
         this.obstacles.push(piping);
     }
 
