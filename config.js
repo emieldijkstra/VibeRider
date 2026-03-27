@@ -184,7 +184,7 @@ const VIBE_CONFIG = {
     }
 };
 
-// Use local callback.html when running on localhost
+// Use bare localhost (no path) for local dev — Spotify blocks localhost+path URLs
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    VIBE_CONFIG.spotify.redirectUri = 'http://localhost:8000/callback.html';
+    VIBE_CONFIG.spotify.redirectUri = 'http://localhost:8000';
 }

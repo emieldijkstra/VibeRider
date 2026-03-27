@@ -15,15 +15,72 @@
 <body>
     <div id="phaser-container"></div>
 
+    <!-- Configuration (must load first, before inline callback check) -->
+    <script src="config.js"></script>
+    <script src="src/auth/auth-manager.js"></script>
+
+    <!-- Inline callback handler: runs before Phaser, handles ?code= redirect from Spotify -->
+    <script>
+    (async function earlyCallbackCheck() {
+        const params = new URLSearchParams(window.location.search);
+        const code   = params.get('code');
+        const state  = params.get('state');
+        const error  = params.get('error');
+
+        if (!code && !error) return; // Normal page load, nothing to do
+
+        // Remove the auth params from the URL immediately (no page reload)
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        if (error) {
+            console.error('Spotify auth error:', error);
+            return; // MenuScene will show login button again
+        }
+
+        try {
+            const storedState    = sessionStorage.getItem('spotify_auth_state');
+            const codeVerifier   = sessionStorage.getItem('spotify_code_verifier');
+
+            if (state !== storedState) throw new Error('State mismatch – possible CSRF');
+            if (!codeVerifier)         throw new Error('Code verifier missing');
+
+            const response = await fetch(VIBE_CONFIG.spotify.tokenEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    client_id:     VIBE_CONFIG.spotify.clientId,
+                    grant_type:    'authorization_code',
+                    code:          code,
+                    redirect_uri:  VIBE_CONFIG.spotify.redirectUri,
+                    code_verifier: codeVerifier
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(`Token exchange failed (${response.status}): ${err.error_description || response.statusText}`);
+            }
+
+            const data = await response.json();
+            AuthManager.setAccessToken(data.access_token, data.expires_in || 3600, data.refresh_token || null);
+
+            sessionStorage.removeItem('spotify_code_verifier');
+            sessionStorage.removeItem('spotify_auth_state');
+
+            console.log('Token stored – proceeding to game');
+            // Phaser + the rest of the scripts load normally below
+        } catch (err) {
+            console.error('Callback handling failed:', err);
+            // User will see login button again; no hard crash
+        }
+    })();
+    </script>
+
     <!-- Phaser Library -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.js"></script>
-    
-    <!-- Configuration -->
-    <script src="config.js"></script>
-    
-    <!-- Auth Module -->
+
+    <!-- Auth Module (full) -->
     <script src="src/auth/spotify-auth.js"></script>
-    <script src="src/auth/auth-manager.js"></script>
     
     <!-- API Modules -->
     <script src="src/api/spotify-api.js"></script>
