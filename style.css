@@ -1,0 +1,285 @@
+/* ============================================
+   VibeRider - Global Styling & Themes
+   ============================================ */
+
+:root {
+    --theme-primary: #00ffff;
+    --theme-secondary: #ff00ff;
+    --theme-accent: #00ff88;
+    --theme-bg: #001a2e;
+    --theme-text: #ffffff;
+    --theme-text-secondary: #b0b0b0;
+}
+
+/* ============================================
+   Theme Definitions (Dynamically Switched)
+   ============================================ */
+
+body.theme-cyborgrid {
+    --theme-primary: #00ffff;
+    --theme-secondary: #ff00ff;
+    --theme-accent: #00ff88;
+    --theme-bg: #001a2e;
+}
+
+body.theme-neonstreet {
+    --theme-primary: #ff9500;
+    --theme-secondary: #ffd700;
+    --theme-accent: #ff6b35;
+    --theme-bg: #1a0f00;
+}
+
+body.theme-chromewave {
+    --theme-primary: #ff1493;
+    --theme-secondary: #ffffff;
+    --theme-accent: #ffa0d2;
+    --theme-bg: #2d1b3d;
+}
+
+body.theme-voidcrash {
+    --theme-primary: #ff0000;
+    --theme-secondary: #000000;
+    --theme-accent: #ff4444;
+    --theme-bg: #0d0d0d;
+}
+
+body.theme-dreamfloat {
+    --theme-primary: #8b5cf6;
+    --theme-secondary: #3b82f6;
+    --theme-accent: #a78bfa;
+    --theme-bg: #1e1b2f;
+}
+
+body.theme-solarrush {
+    --theme-primary: #ffff00;
+    --theme-secondary: #00ff00;
+    --theme-accent: #ffaa00;
+    --theme-bg: #2d2000;
+}
+
+body.theme-goldera {
+    --theme-primary: #ffd700;
+    --theme-secondary: #ffffff;
+    --theme-accent: #ffed4e;
+    --theme-bg: #3d2817;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+    font-size: 16px;
+    line-height: 1.5;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================
+   Phaser Container
+   ============================================ */
+
+#phaser-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ============================================
+   Buttons & UI Elements
+   ============================================ */
+
+button {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 24px;
+    border: 2px solid var(--theme-primary);
+    background-color: transparent;
+    color: var(--theme-primary);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+button:hover {
+    background-color: var(--theme-primary);
+    color: var(--theme-bg);
+    box-shadow: 0 0 20px var(--theme-primary);
+    transform: scale(1.05);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   Input Fields
+   ============================================ */
+
+input[type="text"],
+input[type="search"] {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    padding: 10px 15px;
+    border: 2px solid var(--theme-primary);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: var(--theme-text);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus {
+    outline: none;
+    border-color: var(--theme-accent);
+    box-shadow: 0 0 10px var(--theme-accent);
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* ============================================
+   Text Styles
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+h1 {
+    font-size: 3.5rem;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px var(--theme-primary),
+                 0 0 40px var(--theme-secondary);
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
+.text-secondary {
+    color: var(--theme-text-secondary);
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================
+   Mobile Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    body {
+        font-size: 14px;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        text-shadow: 0 0 10px var(--theme-primary);
+    }
+    50% {
+        text-shadow: 0 0 20px var(--theme-primary), 0 0 30px var(--theme-secondary);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+.slide-in-up {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.glow-text {
+    animation: glow 2s ease-in-out infinite;
+}
