@@ -52,6 +52,16 @@ const gameState = {
 // Create game instance
 let game = new Phaser.Game(phaserConfig);
 
+// Hide loading indicator when Phaser initializes
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    }, 500);
+});
+
 // ============================================================
 // Spotify Web Playback SDK
 // The SDK calls window.onSpotifyWebPlaybackSDKReady when ready
