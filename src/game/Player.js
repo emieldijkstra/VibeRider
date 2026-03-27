@@ -16,7 +16,7 @@ class Player {
 
         // Yellow circle with eyes (Mario-ish character)
         this.circle = scene.add.circle(x, y, this.size, 0xffdd00);
-        this.circle.setStroke(0x000000, 3);
+        this.circle.setStrokeStyle(3, 0x000000, 1);
         
         // Eyes for personality
         this.leftEye = scene.add.circle(x - 10, y - 8, 5, 0x000000);

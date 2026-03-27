@@ -15,7 +15,7 @@ class Obstacle {
         // Top pipe (orange/red)
         const topHeight = gapY - (gapSize / 2);
         this.top = scene.add.rectangle(x, topHeight / 2, W, topHeight, 0xff6b4a);
-        this.top.setStroke(0xffffff, 2);
+        this.top.setStrokeStyle(2, 0xffffff, 1);
         scene.physics.add.existing(this.top, false);
         this.top.body.setVelocityX(-this.speed);
         this.top.body.setImmovable(true);
@@ -25,7 +25,7 @@ class Obstacle {
         const bottomY = gapY + (gapSize / 2);
         const bottomHeight = 1080 - bottomY;
         this.bottom = scene.add.rectangle(x, bottomY + (bottomHeight / 2), W, bottomHeight, 0xff6b4a);
-        this.bottom.setStroke(0xffffff, 2);
+        this.bottom.setStrokeStyle(2, 0xffffff, 1);
         scene.physics.add.existing(this.bottom, false);
         this.bottom.body.setVelocityX(-this.speed);
         this.bottom.body.setImmovable(true);
@@ -34,7 +34,7 @@ class Obstacle {
         // Gap highlight (green safe zone - semi-transparent)
         this.gap = scene.add.rectangle(x, gapY, W, gapSize, 0x00cc44);
         this.gap.setAlpha(0.1);
-        this.gap.setStroke(0x00cc44, 2);
+        this.gap.setStrokeStyle(2, 0x00cc44, 1);
         
         this.gapY = gapY;
     }
