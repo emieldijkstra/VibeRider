@@ -271,34 +271,54 @@ class SongSelectScene extends Phaser.Scene {
         // Show loading overlay
         const W = this.scale.width;
         const H = this.scale.height;
-        const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.7);
-        this.add.text(W / 2, H / 2, `Loading "${track.name}"…`, {
-            font: 'bold 30px Space Grotesk',
-            fill: '#00ffff'
-        }).setOrigin(0.5, 0.5);
+        const overlay  = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.7).setDepth(50);
+        const loadText = this.add.text(W / 2, H / 2, `Loading "${track.name}"…`, {
+            font: 'bold 30px Space Grotesk', fill: '#00ffff'
+        }).setOrigin(0.5, 0.5).setDepth(51);
 
         try {
-            // Fetch audio features + analysis in parallel
-            const [features, analysis] = await Promise.all([
-                SpotifyAPI.getAudioFeatures(track.id),
-                SpotifyAPI.getAudioAnalysis(track.id)
-            ]);
+            // Spotify deprecated /audio-features and /audio-analysis for new apps.
+            // We attempt them but never let failures block the game.
+            let features = null;
+            let analysis = null;
+
+            try {
+                features = await SpotifyAPI.getAudioFeatures(track.id);
+            } catch (e) {
+                console.warn('Audio features unavailable (API deprecated for new apps):', e.message);
+            }
+
+            try {
+                analysis = await SpotifyAPI.getAudioAnalysis(track.id);
+            } catch (e) {
+                console.warn('Audio analysis unavailable (API deprecated for new apps):', e.message);
+            }
+
+            // Merge track duration so the BPM generator always has it
+            const featuresWithDuration = {
+                duration_ms: track.duration_ms || 180000,
+                tempo: 120, energy: 0.65, danceability: 0.6,
+                ...(features || {})
+            };
 
             // Detect & apply theme
-            const genre = ThemeManager.detectGenreFromFeatures(features);
+            const genre = ThemeManager.detectGenreFromFeatures(featuresWithDuration);
             ThemeManager.selectThemeByGenre(genre);
 
-            // Generate level
-            const levelData = await LevelGenerator.generateLevel(track.id, analysis, features);
+            // Generate level — always succeeds (BPM fallback if no analysis)
+            const levelData = await LevelGenerator.generateLevel(
+                track.id, analysis, featuresWithDuration
+            );
 
             gameState.currentTrack = track;
             ScoreManager.reset();
 
-            this.scene.start('GameScene', { track, levelData, features, analysis });
+            this.scene.start('GameScene', { track, levelData, features: featuresWithDuration, analysis });
         } catch (error) {
-            console.error('Error initializing game:', error);
+            console.error('Unexpected error initializing game:', error);
             overlay.destroy();
-            this.showError('Could not load track data. Please try another track.');
+            loadText.destroy();
+            this.showError(`Error: ${error.message}`);
         }
     }
 
