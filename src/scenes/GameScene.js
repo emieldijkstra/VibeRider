@@ -30,32 +30,19 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        console.log('GameScene created:', this.track.name);
+        console.log('🎮 GameScene created:', this.track.name);
 
         const W = this.scale.width;
         const H = this.scale.height;
 
         // ── Background ───────────────────────────────────────────
         this.cameras.main.setBackgroundColor(
-            ThemeManager.currentTheme?.colors?.background || '#001a2e'
+            ThemeManager.currentTheme?.colors?.background || '#0a1428'
         );
         this.createBackground(W, H);
 
-        // ── Ground ───────────────────────────────────────────────
-        const groundY = VIBE_CONFIG.game.groundLevel;
-        this.ground = this.physics.add.staticGroup();
-        const groundTile = this.add.rectangle(W / 2, groundY + 10, W * 4, 20,
-            Phaser.Display.Color.HexStringToColor(
-                ThemeManager.currentTheme?.colors?.primary || '#00ffff'
-            ).color, 0.6
-        );
-        this.physics.add.existing(groundTile, true);
-        this.ground.add(groundTile);
-
-        // ── Player ───────────────────────────────────────────────
-        this.player = new Player(this, 160, groundY - 14);
-        // Collider between the player's physics body and ground
-        this.physics.add.collider(this.player.body, this.ground);
+        // ── Player (flying character) ────────────────────────────
+        this.player = new Player(this, 160, H / 2);
 
         // ── Sync Engine ──────────────────────────────────────────
         this.syncEngine = new SyncEngine(this);
@@ -142,15 +129,11 @@ class GameScene extends Phaser.Scene {
         this.spawnedIds.add(obstacleData.id);
 
         const W = this.scale.width;
-        const groundY = VIBE_CONFIG.game.groundLevel;
-        const obsHeight = obstacleData.height || VIBE_CONFIG.game.obstacleHeight;
+        const gapY = obstacleData.gapY;
 
-        // Spawn obstacle so its bottom sits at ground level
-        const obsY = groundY - (obsHeight / 2);
-
-        const ob = new Obstacle(this, W + 80, obsY, obstacleData);
-        this.physics.add.collider(ob, this.ground);
-        this.obstacles.push(ob);
+        // Spawn pipe pair at right edge with specified gap Y position
+        const piping = new Obstacle(this, W + 100, gapY, obstacleData);
+        this.obstacles.push(piping);
     }
 
     // ────────────────────────────────────────────────────────────
@@ -227,8 +210,8 @@ class GameScene extends Phaser.Scene {
 
             ob.update();
 
-            // Simple AABB collision
-            if (ob.type !== 'speedup' && ob.checkCollisionWith(this.player)) {
+            // Collision with pipes (flies through gap safely)
+            if (ob.checkCollisionWith(this.player)) {
                 this.endGame(true);
                 return;
             }

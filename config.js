@@ -122,16 +122,17 @@ const VIBE_CONFIG = {
         width: 1920,
         height: 1080,
         
-        // Player physics
-        playerSpeed: 300,
-        jumpForce: 500,
-        gravity: 1200,
-        groundLevel: 850,
+        // Player physics (flying mechanics)
+        playerFlapForce: 400,       // Upward velocity on click
+        playerGravity: 600,         // Downward acceleration
+        playerMaxVelocity: 500,     // Max fall speed
+        playerSize: 40,             // Circle radius for player
         
-        // Obstacles
-        obstacleSpeed: 400,
-        obstacleWidth: 80,
-        obstacleHeight: 80,
+        // Obstacles (paired top/bottom pipes)
+        obstacleSpeed: 350,
+        obstacleWidth: 120,
+        obstacleGapSize: 250,       // Space between top and bottom pipes
+        obstacleSpacing: 500,       // Horizontal distance between pairs
         
         // Sync engine
         syncPollInterval: 350, // ms between Spotify position polls
