@@ -156,16 +156,6 @@ class MenuScene extends Phaser.Scene {
             .setStrokeStyle(3, 0xFFD700, 0.6)
             .setDepth(14);
     }
-        }
-        
-        // Horizontal lines
-        for (let i = 0; i < height; i += 100) {
-            graphics.beginPath();
-            graphics.moveTo(0, i);
-            graphics.lineTo(width, i);
-            graphics.strokePath();
-        }
-    }
 
     update() {
         // Handle any continuous updates

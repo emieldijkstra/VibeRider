@@ -63,7 +63,10 @@ const ThemeManager = {
         // Update CSS variables
         this.applyThemeVariables();
 
-        gameState.currentTheme = themeKey;
+        // Update global gameState if available
+        if (typeof gameState !== 'undefined') {
+            gameState.currentTheme = themeKey;
+        }
     },
 
     /**
@@ -110,7 +113,13 @@ const ThemeManager = {
     }
 };
 
-// Initialize with default theme
-ThemeManager.setTheme('cyborgrid');
+// Initialize with default theme (deferred until DOM is ready)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        ThemeManager.setTheme('cyborgrid');
+    });
+} else {
+    ThemeManager.setTheme('cyborgrid');
+}
 
 console.log('ThemeManager loaded');
