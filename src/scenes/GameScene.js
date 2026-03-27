@@ -122,7 +122,8 @@ class GameScene extends Phaser.Scene {
 
     createCloud(x, y, width, color, alpha) {
         const g = this.add.graphics();
-        g.fillStyle(Phaser.Display.Color.HexStringToColor(color).color, alpha);
+        // Use numeric color value directly
+        g.fillStyle(color, alpha);
         // Cloud shape made of circles
         g.fillCircle(x, y, width * 0.3);
         g.fillCircle(x + width * 0.2, y - width * 0.1, width * 0.35);
