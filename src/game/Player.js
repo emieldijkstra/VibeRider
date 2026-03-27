@@ -1,5 +1,5 @@
 /**
- * Player – Flying character (Flappy Bird style)
+ * Player – Flying character
  * Click/Spacebar to flap upward, gravity pulls down
  */
 
@@ -39,29 +39,43 @@ class Player {
             10, 8    // bottom right
         ], mouthColor);
         
-        // Physics body
+        // Physics body (no gravity, we handle it manually)
         scene.physics.add.existing(this.body);
         this.body.body.setCollideWorldBounds(true);
-        this.body.body.setBounce(0.3);
+        this.body.body.setBounce(0);
         this.body.body.setAllowGravity(false);
+        this.body.body.setVelocity(0, 0); // Start stationary
+        this.body.body.setDrag(0);
+        this.body.body.setDamping(false);
+        this.body.body.setMass(1);
 
-        // Input handlers: click or spacebar to flap
+        // Store scene reference for input
+        this.scene = scene;
+        
+        // INPUT HANDLERS - bind to scene, not to this
         const spacebar = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        spacebar.on('down', () => this.flap());
-        scene.input.on('pointerdown', () => this.flap());
+        spacebar.on('down', () => {
+            console.log('🅣 SPACEBAR PRESSED');
+            this.flap();
+        });
+        
+        scene.input.on('pointerdown', () => {
+            console.log('🅣 CLICK DETECTED');
+            this.flap();
+        });
 
-        console.log('🐦 Flappy Bird Player created');
+        console.log('🐦 Player created at', x, y);
     }
 
     get x() { return this.body.x; }
     get y() { return this.body.y; }
 
     flap() {
-        if (!this.isDead) {
-            this.velocityY = -this.flapForce;
-            // Particle effect on flap
-            this.createFlapEffect();
-        }
+        if (this.isDead) return;
+        console.log('⬆️ FLAP! Setting velocity to', -this.flapForce);
+        this.velocityY = -this.flapForce;
+        // Particle effect on flap
+        this.createFlapEffect();
     }
 
     createFlapEffect() {
@@ -151,4 +165,4 @@ class Player {
     }
 }
 
-console.log('🎮 Flappy Bird Player loaded');
+console.log('🎮 Player loaded');

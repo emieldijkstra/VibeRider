@@ -1,5 +1,5 @@
 /**
- * Obstacle – Paired top/bottom pipes (Flappy Bird style)
+ * Obstacle – Paired top/bottom pipes
  * Player must fly through the gap between them
  */
 
@@ -98,4 +98,4 @@ class Obstacle {
     }
 }
 
-console.log('🔧 Flappy Bird Pipes loaded');
+console.log('🔧 Pipes loaded');

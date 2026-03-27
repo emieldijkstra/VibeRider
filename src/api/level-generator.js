@@ -1,5 +1,5 @@
 /**
- * Level Generator for Flappy Bird / Flying style gameplay
+ * Level Generator for procedural level generation
  * Generates ladder of pipe pairs with varying gap positions
  * 
  * Each obstacle pair has:
