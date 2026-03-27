@@ -51,23 +51,9 @@ const gameState = {
 // Create game instance
 let game = new Phaser.Game(phaserConfig);
 
-// Initialize on page load
+// Initialize on page load – callback handling is done in callback.html
 document.addEventListener('DOMContentLoaded', () => {
     console.log('VibeRider initialized');
-    
-    // Check if returning from Spotify callback
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('code')) {
-        console.log('Authorization code received');
-        SpotifyAuth.handleCallback();
-    }
-    
-    // Check for existing token
-    const token = AuthManager.getAccessToken();
-    if (token) {
-        console.log('Token found in localStorage');
-        game.scene.start('MenuScene');
-    }
 });
 
 // Handle window resize

@@ -9,7 +9,7 @@ const VIBE_CONFIG = {
     // ========================================
     spotify: {
         clientId: 'e52f9fdf6d02479f8a4240228a5b1cf4',
-        redirectUri: window.location.origin + '/VibeRider/callback',
+        redirectUri: 'https://emieldijkstra.github.io/VibeRider/callback.html',
         scopes: [
             'streaming',
             'user-read-email',
@@ -184,7 +184,7 @@ const VIBE_CONFIG = {
     }
 };
 
-// Adjust redirectUri based on environment
+// Use local callback.html when running on localhost
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    VIBE_CONFIG.spotify.redirectUri = 'http://localhost:8000/callback';
+    VIBE_CONFIG.spotify.redirectUri = 'http://localhost:8000/callback.html';
 }
