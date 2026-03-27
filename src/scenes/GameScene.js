@@ -36,38 +36,40 @@ class GameScene extends Phaser.Scene {
         const H = this.scale.height;
 
         // ── Background ───────────────────────────────────────────
-        this.cameras.main.setBackgroundColor(
-            ThemeManager.currentTheme?.colors?.background || '#0a1428'
-        );
         this.createBackground(W, H);
 
-        // ── Player (flying character) ────────────────────────────
-        this.player = new Player(this, 160, H / 2);
+        // ── Player (flying character, nice big and visible) ───────
+        this.player = new Player(this, 200, H / 2.5);
 
         // ── Sync Engine ──────────────────────────────────────────
         this.syncEngine = new SyncEngine(this);
 
-        // ── HUD ──────────────────────────────────────────────────
-        this.scoreText = this.add.text(20, 16, 'Score: 0', {
-            font: 'bold 28px Space Grotesk', fill: '#00ffff'
-        }).setDepth(20).setScrollFactor(0);
+        // ── HUD Background (semi-transparent bar) ──────────────────
+        const hudBg = this.add.rectangle(0, 0, W, 100, 0x000000, 0.3).setOrigin(0, 0).setDepth(10);
 
-        this.comboText = this.add.text(20, 52, 'Combo: ×1', {
-            font: '20px Space Grotesk', fill: '#00ff88'
-        }).setDepth(20).setScrollFactor(0);
-
-        this.trackText = this.add.text(W / 2, 16,
-            `${this.track.name}  —  ${this.track.artists?.[0]?.name || ''}`, {
-            font: '18px Space Grotesk', fill: '#b0b0b0', align: 'center'
+        // ── HUD Title ────────────────────────────────────────────
+        this.trackText = this.add.text(W / 2, 12,
+            `♪ ${this.track.name} ♪`, {
+            font: 'bold 24px Space Grotesk', fill: '#FFD700', align: 'center'
         }).setOrigin(0.5, 0).setDepth(20).setScrollFactor(0);
 
-        this.syncText = this.add.text(W - 20, 16, '', {
-            font: '14px Space Grotesk', fill: '#556677'
+        // ── Score ────────────────────────────────────────────────
+        this.scoreText = this.add.text(30, 50, 'Score: 0', {
+            font: 'bold 32px Space Grotesk', fill: '#FFD700'
+        }).setDepth(20).setScrollFactor(0);
+
+        // ── Combo ────────────────────────────────────────────────
+        this.comboText = this.add.text(W - 30, 50, 'Combo: ×1', {
+            font: 'bold 24px Space Grotesk', fill: '#00FF00'
         }).setOrigin(1, 0).setDepth(20).setScrollFactor(0);
 
+        this.syncText = this.add.text(W / 2, 50, '', {
+            font: '14px Space Grotesk', fill: '#888888'
+        }).setOrigin(0.5, 0).setDepth(20).setScrollFactor(0);
+
         // ── Pause button ─────────────────────────────────────────
-        const pauseBtn = this.add.text(W - 20, 52, '❚❚ ESC', {
-            font: '18px Space Grotesk', fill: '#888888'
+        const pauseBtn = this.add.text(W - 30, 80, '■ ESC', {
+            font: '16px Space Grotesk', fill: '#FF4444'
         }).setOrigin(1, 0).setDepth(20).setScrollFactor(0)
           .setInteractive({ useHandCursor: true });
         pauseBtn.on('pointerdown', () => this.endGame(false));
@@ -75,9 +77,9 @@ class GameScene extends Phaser.Scene {
         // ── ESC key ──────────────────────────────────────────────
         this.input.keyboard.once('keydown-ESC', () => this.endGame(false));
 
-        // ── Countdown then start ──────────────────────────────────
+        // ── Countdown (huge and centered) ──────────────────────────
         this.countText = this.add.text(W / 2, H / 2, '3', {
-            font: 'bold 180px Space Grotesk', fill: '#00ffff', alpha: 0.9
+            font: 'bold 200px Space Grotesk', fill: '#FFD700', alpha: 1
         }).setOrigin(0.5, 0.5).setDepth(30).setScrollFactor(0);
 
         this.countdown  = 3;
@@ -85,18 +87,47 @@ class GameScene extends Phaser.Scene {
     }
 
     // ────────────────────────────────────────────────────────────
-    // Background grid
+    // Create beautiful background with sky, clouds, ground
     // ────────────────────────────────────────────────────────────
     createBackground(W, H) {
+        // Sky gradient (light blue to lighter blue)
+        this.add.rectangle(W / 2, 0, W, H * 0.7, 0x87CEEB).setOrigin(0, 0);
+        this.add.rectangle(W / 2, H * 0.7, W, H * 0.3, 0xE0F6FF).setOrigin(0, 0);
+        
+        // Far mountains (very light, parallax effect later)
+        this.createMountain(0, H * 0.5, W, 150, 0xA8D5BA, 0.3);
+        this.createMountain(W * 0.3, H * 0.45, W, 200, 0x73C6B6, 0.4);
+        
+        // Clouds (static, decorative)
+        this.createCloud(W * 0.15, H * 0.15, 80, 0xFFFFFF, 0.8);
+        this.createCloud(W * 0.75, H * 0.2, 100, 0xFFFFFF, 0.7);
+        this.createCloud(W * 0.5, H * 0.35, 120, 0xFFFFFF, 0.6);
+        
+        // Ground/terrain at bottom
+        this.add.rectangle(W / 2, H - 60, W, 120, 0x8B7355).setOrigin(0.5, 0);
+        this.add.rectangle(W / 2, H - 55, W, 30, 0xA0826D).setOrigin(0.5, 0);
+        
+        // Grass line
+        this.add.rectangle(W / 2, H - 60, W, 8, 0x22B14C).setOrigin(0.5, 0);
+    }
+
+    createMountain(x, y, width, height, color, alpha) {
+        const polygon = this.add.polygon(x + width / 2, y, [
+            0, height,           // bottom left
+            width / 2, -height,  // peak
+            width, height        // bottom right
+        ], color);
+        polygon.setAlpha(alpha);
+    }
+
+    createCloud(x, y, width, color, alpha) {
         const g = this.add.graphics();
-        const col = ThemeManager.currentTheme?.colors?.primary || '#00ffff';
-        const hex = Phaser.Display.Color.HexStringToColor(col).color;
-        g.lineStyle(1, hex, 0.08);
-
-        for (let x = 0; x < W; x += 80)  { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.strokePath(); }
-        for (let y = 0; y < H; y += 80)  { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.strokePath(); }
-
-        this.bgGraphics = g;
+        g.fillStyle(Phaser.Display.Color.HexStringToColor(color).color, alpha);
+        // Cloud shape made of circles
+        g.fillCircle(x, y, width * 0.3);
+        g.fillCircle(x + width * 0.2, y - width * 0.1, width * 0.35);
+        g.fillCircle(x + width * 0.4, y, width * 0.3);
+        g.fillCircle(x - width * 0.2, y, width * 0.25);
     }
 
     // ────────────────────────────────────────────────────────────

@@ -14,34 +14,73 @@ class Player {
         this.velocityY = 0;
         this.isDead = false;
 
-        // Yellow circle with eyes (Mario-ish character)
-        this.circle = scene.add.circle(x, y, this.size, 0xffdd00);
-        this.circle.setStrokeStyle(3, 0x000000, 1);
+        // Create a larger, more visible character
+        // Main body - bigger yellow circle
+        this.body = scene.add.circle(x, y, this.size, 0xffdd00);
+        this.body.setStrokeStyle(4, 0x333333, 1);
         
-        // Eyes for personality
-        this.leftEye = scene.add.circle(x - 10, y - 8, 5, 0x000000);
-        this.rightEye = scene.add.circle(x + 10, y - 8, 5, 0x000000);
+        // Cheek circles (red/pink)
+        this.leftCheek = scene.add.circle(x - 28, y + 5, 12, 0xff6b9d);
+        this.rightCheek = scene.add.circle(x + 28, y + 5, 12, 0xff6b9d);
+        
+        // Eyes - big and expressive
+        this.leftEye = scene.add.circle(x - 12, y - 15, 8, 0xffffff);
+        this.rightEye = scene.add.circle(x + 12, y - 15, 8, 0xffffff);
+        
+        // Pupils
+        this.leftPupil = scene.add.circle(x - 12, y - 15, 4, 0x000000);
+        this.rightPupil = scene.add.circle(x + 12, y - 15, 4, 0x000000);
+        
+        // Beak/mouth (orange triangle-ish)
+        const mouthColor = 0xFF9500;
+        this.mouth = scene.add.polygon(x, y + 20, [
+            0, -8,   // top
+            -10, 8,  // bottom left
+            10, 8    // bottom right
+        ], mouthColor);
         
         // Physics body
-        scene.physics.add.existing(this.circle);
-        this.circle.body.setCollideWorldBounds(true);
-        this.circle.body.setBounce(0.1);
-        this.circle.body.setAllowGravity(false);
+        scene.physics.add.existing(this.body);
+        this.body.body.setCollideWorldBounds(true);
+        this.body.body.setBounce(0.3);
+        this.body.body.setAllowGravity(false);
 
         // Input handlers: click or spacebar to flap
         const spacebar = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         spacebar.on('down', () => this.flap());
         scene.input.on('pointerdown', () => this.flap());
 
-        console.log('🐦 Flying Player created');
+        console.log('🐦 Flappy Bird Player created');
     }
 
-    get x() { return this.circle.x; }
-    get y() { return this.circle.y; }
+    get x() { return this.body.x; }
+    get y() { return this.body.y; }
 
     flap() {
         if (!this.isDead) {
             this.velocityY = -this.flapForce;
+            // Particle effect on flap
+            this.createFlapEffect();
+        }
+    }
+
+    createFlapEffect() {
+        // Simple particle burst upward when flapping
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI / 3) * i;
+            const particle = this.scene.add.circle(
+                this.body.x + Math.cos(angle) * 20,
+                this.body.y + Math.sin(angle) * 20,
+                3,
+                0xffff00
+            );
+            this.scene.tweens.add({
+                targets: particle,
+                alpha: 0,
+                y: particle.y - 40,
+                duration: 500,
+                onComplete: () => particle.destroy()
+            });
         }
     }
 
@@ -53,18 +92,24 @@ class Player {
         );
         
         // Update position
-        this.circle.y += this.velocityY;
+        this.body.y += this.velocityY;
         
-        // Sync eyes with circle
-        this.leftEye.setPosition(this.circle.x - 10, this.circle.y - 8);
-        this.rightEye.setPosition(this.circle.x + 10, this.circle.y - 8);
+        // Sync all parts to body position
+        const offset = 0;
+        this.leftCheek.setPosition(this.body.x - 28, this.body.y + 5);
+        this.rightCheek.setPosition(this.body.x + 28, this.body.y + 5);
+        this.leftEye.setPosition(this.body.x - 12, this.body.y - 15);
+        this.rightEye.setPosition(this.body.x + 12, this.body.y - 15);
+        this.leftPupil.setPosition(this.body.x - 12, this.body.y - 15);
+        this.rightPupil.setPosition(this.body.x + 12, this.body.y - 15);
+        this.mouth.setPosition(this.body.x, this.body.y + 20);
         
-        // Tilt based on velocity (spin effect)
-        const tilt = Phaser.Math.Clamp(this.velocityY / 300, -0.5, 0.5);
-        this.circle.setRotation(tilt);
+        // Tilt based on velocity
+        const tilt = Phaser.Math.Clamp(this.velocityY / 300, -0.4, 0.4);
+        this.body.setRotation(tilt);
         
-        // Death by screen bounds
-        if (this.circle.y - this.size < 0 || this.circle.y + this.size > 1080) {
+        // World bounds check
+        if (this.body.y - this.size < 0 || this.body.y + this.size > 1080) {
             this.die();
         }
     }
@@ -72,26 +117,38 @@ class Player {
     die() {
         if (!this.isDead) {
             this.isDead = true;
-            this.circle.setFillStyle(0xff0000);
-            this.leftEye.setFillStyle(0xffffff);
-            this.rightEye.setFillStyle(0xffffff);
+            this.body.setFillStyle(0xff0000);
+            this.leftEye.setFillStyle(0xff0000);
+            this.rightEye.setFillStyle(0xff0000);
+            
+            // X-eyes effect
+            this.scene.tweens.add({
+                targets: [this.leftPupil, this.rightPupil],
+                alpha: 0,
+                duration: 200
+            });
         }
     }
 
     getCollisionBounds() {
         return {
-            x: this.circle.x - this.size,
-            y: this.circle.y - this.size,
+            x: this.body.x - this.size,
+            y: this.body.y - this.size,
             width: this.size * 2,
             height: this.size * 2
         };
     }
 
     destroy() {
-        this.circle.destroy();
+        this.body.destroy();
+        this.leftCheek.destroy();
+        this.rightCheek.destroy();
         this.leftEye.destroy();
         this.rightEye.destroy();
+        this.leftPupil.destroy();
+        this.rightPupil.destroy();
+        this.mouth.destroy();
     }
 }
 
-console.log('🎮 Player (Flying) class loaded');
+console.log('🎮 Flappy Bird Player loaded');
