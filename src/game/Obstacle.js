@@ -1,96 +1,55 @@
 /**
- * Obstacle Class
- * Handles obstacle sprites, physics, and collision detection
+ * Obstacle – drawn as a colored rectangle (no external texture needed)
  */
 
-class Obstacle extends Phaser.Physics.Arcade.Sprite {
+class Obstacle {
     constructor(scene, x, y, obstacleData) {
-        super(scene, x, y);
-        
-        scene.physics.add.existing(this);
-        scene.add.existing(this);
-
-        this.data = obstacleData;
-        this.type = obstacleData.type; // 'wall' or 'gap' or 'speedup'
-        this.speed = VIBE_CONFIG.game.obstacleSpeed;
-        this.isSpawned = false;
+        this.scene       = scene;
+        this.type        = obstacleData.type;
         this.isDespawned = false;
+        this.speed       = VIBE_CONFIG.game.obstacleSpeed;
 
-        // Set dimensions
-        this.displayWidth = obstacleData.width || VIBE_CONFIG.game.obstacleWidth;
-        this.displayHeight = obstacleData.height || VIBE_CONFIG.game.obstacleHeight;
+        this.W = obstacleData.width  || VIBE_CONFIG.game.obstacleWidth;
+        this.H = obstacleData.height || VIBE_CONFIG.game.obstacleHeight;
 
-        // Visual
-        this.setColor(this.getColorByType());
+        const color = this.type === 'wall'    ? 0xff0066
+                    : this.type === 'gap'     ? 0x00cc44
+                    : /* speedup */             0xffdd00;
 
-        // Physics
-        this.body.setVelocityX(-this.speed);
-        this.body.setCollideWorldBounds(false);
-        this.body.setAllowGravity(false);
-
-        console.log(`Obstacle created: ${this.type}`);
+        this.rect = scene.add.rectangle(x, y, this.W, this.H, color);
+        this.rect.setStrokeStyle(3, 0xffffff, 0.4);
+        scene.physics.add.existing(this.rect, false);
+        this.rect.body.setVelocityX(-this.speed);
+        this.rect.body.setAllowGravity(false);
+        this.rect.body.setImmovable(true);
     }
 
-    /**
-     * Get color based on obstacle type
-     */
-    getColorByType() {
-        const theme = ThemeManager.currentTheme || ThemeManager.themes['cyborgrid'];
-        switch (this.type) {
-            case 'wall':
-                return 0xff0066; // Magenta wall
-            case 'gap':
-                return 0x00aa00; // Green gap
-            case 'speedup':
-                return 0xffff00; // Yellow modifier
-            default:
-                return 0x00ffff; // Cyan default
-        }
-    }
+    get x() { return this.rect.x; }
+    get y() { return this.rect.y; }
 
-    /**
-     * Update obstacle state
-     */
     update() {
-        // Check if despawned
-        if (this.x < -this.displayWidth && !this.isDespawned) {
-            this.destroySelf();
+        if (this.rect.x < -this.W - 50 && !this.isDespawned) {
+            this.isDespawned = true;
+            this.rect.destroy();
         }
     }
 
-    /**
-     * Get obstacle bounds for collision
-     */
     getCollisionBounds() {
-        return {
-            x: this.x - this.displayWidth / 2,
-            y: this.y - this.displayHeight / 2,
-            width: this.displayWidth,
-            height: this.displayHeight
-        };
+        return { x: this.rect.x - this.W / 2, y: this.rect.y - this.H / 2,
+                 width: this.W, height: this.H };
     }
 
-    /**
-     * Check collision with player
-     */
     checkCollisionWith(player) {
-        const pBounds = player.getCollisionBounds();
-        const oBounds = this.getCollisionBounds();
+        if (this.type !== 'wall') return false;
 
+        const p = player.getCollisionBounds();
+        const o = this.getCollisionBounds();
         return !(
-            pBounds.x + pBounds.width < oBounds.x ||
-            pBounds.x > oBounds.x + oBounds.width ||
-            pBounds.y + pBounds.height < oBounds.y ||
-            pBounds.y > oBounds.y + oBounds.height
+            p.x + p.width  < o.x ||
+            p.x            > o.x + o.width ||
+            p.y + p.height < o.y ||
+            p.y            > o.y + o.height
         );
-    }
-
-    /**
-     * Destroy obstacle
-     */
-    destroySelf() {
-        this.isDespawned = true;
-        this.destroy();
     }
 }
 

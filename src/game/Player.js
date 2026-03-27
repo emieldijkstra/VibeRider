@@ -1,110 +1,74 @@
 /**
- * Player Class
- * Handles player sprite, physics, and input
+ * Player – drawn as a neon rectangle (no external texture needed)
  */
 
-class Player extends Phaser.Physics.Arcade.Sprite {
+class Player {
     constructor(scene, x, y) {
-        super(scene, x, y);
-        
-        scene.physics.add.existing(this);
-        scene.add.existing(this);
+        this.scene         = scene;
+        this.jumpForce     = VIBE_CONFIG.game.jumpForce;
+        this.isGrounded    = false;
+        this.jumpCooldown  = 0;
+        this.W             = 52;
+        this.H             = 28;
 
-        // Movement
-        this.speed = VIBE_CONFIG.game.playerSpeed;
-        this.jumpForce = VIBE_CONFIG.game.jumpForce;
-        this.isGrounded = false;
-        this.jumpCooldown = 0;
+        // Physics body via a rectangle game object
+        this.body = scene.add.rectangle(x, y, this.W, this.H, 0x00ffff);
+        scene.physics.add.existing(this.body);
+        this.body.body.setCollideWorldBounds(false);
+        this.body.body.setMaxVelocityY(900);
+        this.body.body.setGravityY(0); // global gravity from phaserConfig handles it
 
-        // Visual
-        this.displayWidth = 60;
-        this.displayHeight = 40;
-        
-        // Physics
-        this.body.setCollideWorldBounds(true);
-        this.body.setBounce(0.2);
-        this.setBounce(0.2);
+        // Cockpit accent
+        this.cockpit = scene.add.rectangle(x + 10, y - 6, 18, 10, 0xffffff);
+        // Glow line
+        this.glow = scene.add.rectangle(x, y + 16, this.W - 8, 4, 0xff00ff);
 
-        // Input handling
-        this.cursors = scene.input.keyboard.createCursorKeys();
-        this.spacebar = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        this.setupInputListeners(scene);
+        // Input
+        const spacebar = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        spacebar.on('down', () => this.tryJump());
+        scene.input.on('pointerdown', () => this.tryJump());
 
         console.log('Player created');
     }
 
-    /**
-     * Setup input event listeners
-     */
-    setupInputListeners(scene) {
-        // Listen for spacebar press
-        this.spacebar.on('down', () => {
-            this.tryJump();
-        });
+    get x()  { return this.body.x; }
+    get y()  { return this.body.y; }
 
-        // Touch input for mobile
-        scene.input.on('pointerdown', (pointer) => {
-            if (pointer.y > scene.game.config.height / 2) {
-                this.tryJump();
-            }
-        });
-    }
-
-    /**
-     * Attempt to jump
-     */
     tryJump() {
         if (this.isGrounded && this.jumpCooldown <= 0) {
-            this.jump();
-            this.jumpCooldown = 0.1; // Prevent multiple jumps per frame
+            this.body.body.setVelocityY(-this.jumpForce);
+            this.isGrounded   = false;
+            this.jumpCooldown = 150;
         }
     }
 
-    /**
-     * Execute jump
-     */
-    jump() {
-        this.setVelocityY(-this.jumpForce);
-        this.isGrounded = false;
-        console.log('Player jumped');
+    update(delta) {
+        this.jumpCooldown = Math.max(0, this.jumpCooldown - delta);
+        this.isGrounded   = this.body.body.blocked.down;
+
+        // Sync accent pieces
+        this.cockpit.setPosition(this.body.x + 10, this.body.y - 6);
+        this.glow.setPosition(this.body.x, this.body.y + 14);
+
+        // Tilt slightly when airborne
+        const tilt = this.isGrounded ? 0 : -0.15;
+        this.body.setRotation(tilt);
+        this.cockpit.setRotation(tilt);
+        this.glow.setRotation(tilt);
     }
 
-    /**
-     * Update player state
-     */
-    update(deltaMs) {
-        // Update jump cooldown
-        this.jumpCooldown = Math.max(0, this.jumpCooldown - deltaMs / 1000);
-
-        // Check if grounded (simple raycast below player)
-        const groundY = VIBE_CONFIG.game.groundLevel;
-        if (this.y >= groundY) {
-            this.setY(groundY);
-            this.setVelocityY(0);
-            this.isGrounded = true;
-        } else {
-            this.isGrounded = false;
-        }
-    }
-
-    /**
-     * Get player bounds for collision
-     */
     getCollisionBounds() {
-        return {
-            x: this.x - this.displayWidth / 2,
-            y: this.y - this.displayHeight / 2,
-            width: this.displayWidth,
-            height: this.displayHeight
-        };
+        return { x: this.body.x - this.W / 2, y: this.body.y - this.H / 2,
+                 width: this.W, height: this.H };
     }
 
-    /**
-     * Play hit animation
-     */
     hitAnimation() {
-        this.setTint(0xff0000);
-        setTimeout(() => this.clearTint(), 100);
+        this.body.setFillStyle(0xff0000);
+        this.scene.time.delayedCall(150, () => this.body.setFillStyle(0x00ffff));
+    }
+
+    addColliderWith(group) {
+        this.scene.physics.add.collider(this.body, group);
     }
 }
 

@@ -53,23 +53,76 @@ const SpotifyAPI = {
         try {
             const cacheKey = `spotify_top_tracks_${limit}`;
             const cached = sessionStorage.getItem(cacheKey);
-            
+
             if (cached) {
                 console.log('Using cached top tracks');
                 return JSON.parse(cached);
             }
 
             console.log('Fetching top tracks from Spotify...');
-            const data = await this.request('/me/top/tracks', {
-                method: 'GET'
-            });
+            const params = new URLSearchParams({ limit, time_range: 'medium_term' });
+            const data = await this.request(`/me/top/tracks?${params}`);
 
-            // Cache result
             sessionStorage.setItem(cacheKey, JSON.stringify(data));
-            
             return data;
         } catch (error) {
             console.error('Error fetching top tracks:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get user's recently played tracks (fallback when top tracks is empty)
+     */
+    getRecentlyPlayed: async function(limit = 50) {
+        try {
+            const cacheKey = `spotify_recent_tracks_${limit}`;
+            const cached = sessionStorage.getItem(cacheKey);
+
+            if (cached) {
+                console.log('Using cached recent tracks');
+                return JSON.parse(cached);
+            }
+
+            console.log('Fetching recently played tracks...');
+            const params = new URLSearchParams({ limit });
+            const data = await this.request(`/me/player/recently-played?${params}`);
+
+            // recently-played wraps tracks inside items[].track
+            const tracks = (data.items || []).map(i => i.track);
+            const result = { items: tracks };
+
+            sessionStorage.setItem(cacheKey, JSON.stringify(result));
+            return result;
+        } catch (error) {
+            console.error('Error fetching recently played:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get available devices for playback
+     */
+    getDevices: async function() {
+        try {
+            return await this.request('/me/player/devices');
+        } catch (error) {
+            console.error('Error fetching devices:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Start or resume playback on a device
+     */
+    play: async function(deviceId, trackUri) {
+        try {
+            await this.request(`/me/player/play?device_id=${deviceId}`, {
+                method: 'PUT',
+                body: { uris: [trackUri] }
+            });
+        } catch (error) {
+            console.error('Error starting playback:', error);
             throw error;
         }
     },

@@ -8,6 +8,26 @@ const ThemeManager = {
     themes: VIBE_CONFIG.themes,
 
     /**
+     * Detect genre from audio features (heuristic)
+     */
+    detectGenreFromFeatures: function(features) {
+        const energy       = features.energy       || 0.5;
+        const danceability = features.danceability || 0.5;
+        const tempo        = features.tempo        || 120;
+        const valence      = features.valence      || 0.5;
+        const acousticness = features.acousticness || 0.5;
+        const speechiness  = features.speechiness  || 0.05;
+
+        if (acousticness > 0.7 && energy < 0.4)      return 'classical';
+        if (energy < 0.35 && tempo < 100)             return 'lo-fi';
+        if (speechiness > 0.25 && danceability > 0.6) return 'hip-hop';
+        if (danceability > 0.7 && valence > 0.6 && tempo > 110) return 'latin';
+        if (energy > 0.75 && tempo > 130)             return 'electronic';
+        if (energy > 0.65 && acousticness < 0.2)      return 'rock';
+        return 'pop';
+    },
+
+    /**
      * Select theme based on genre
      */
     selectThemeByGenre: function(genre) {
