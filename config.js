@@ -9,7 +9,7 @@ const VIBE_CONFIG = {
     // ========================================
     spotify: {
         clientId: 'e52f9fdf6d02479f8a4240228a5b1cf4',
-        redirectUri: 'https://emieldijkstra.github.io/VibeRider/callback.html',
+        redirectUri: 'http://127.0.0.1:8000/callback.html',
         scopes: [
             'streaming',
             'user-read-email',
