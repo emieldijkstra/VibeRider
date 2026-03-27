@@ -31,12 +31,16 @@ const SpotifyAPI = {
             });
 
             if (!response.ok) {
+                const errBody = await response.json().catch(() => ({}));
+                console.error(`Spotify API ${response.status} on ${endpoint}:`, errBody);
                 if (response.status === 401) {
-                    // Token expired
                     AuthManager.clearTokens();
-                    throw new Error('Unauthorized - token expired');
+                    throw new Error('Unauthorized - token expired. Please log in again.');
                 }
-                throw new Error(`API request failed: ${response.status}`);
+                if (response.status === 403) {
+                    throw new Error(`Permission denied (403) for ${endpoint}. Scope may be missing.`);
+                }
+                throw new Error(`Spotify API ${response.status}: ${errBody.error?.message || response.statusText}`);
             }
 
             return await response.json();

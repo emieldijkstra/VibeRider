@@ -15,7 +15,9 @@ const VIBE_CONFIG = {
             'user-read-email',
             'user-read-private',
             'user-modify-playback-state',
-            'user-read-playback-state'
+            'user-read-playback-state',
+            'user-top-read',
+            'user-read-recently-played'
         ],
         authEndpoint: 'https://accounts.spotify.com/authorize',
         tokenEndpoint: 'https://accounts.spotify.com/api/token',
