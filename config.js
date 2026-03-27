@@ -184,7 +184,11 @@ const VIBE_CONFIG = {
     }
 };
 
-// Use bare localhost (no path) for local dev — Spotify blocks localhost+path URLs
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    VIBE_CONFIG.spotify.redirectUri = 'http://localhost:8000';
+// Local dev: use 127.0.0.1 (Spotify treats this differently from 'localhost')
+// If running via VS Code port forwarding or ngrok, the production URI is used automatically
+if (window.location.hostname === '127.0.0.1') {
+    VIBE_CONFIG.spotify.redirectUri = 'http://127.0.0.1:8000';
+} else if (window.location.hostname === 'localhost') {
+    // Some setups use localhost — map to 127.0.0.1 for consistency
+    VIBE_CONFIG.spotify.redirectUri = 'http://127.0.0.1:8000';
 }
