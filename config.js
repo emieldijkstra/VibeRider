@@ -131,7 +131,7 @@ const VIBE_CONFIG = {
         // Obstacles
         obstacleSpeed: 400,
         obstacleWidth: 80,
-        obstacleHeight: 150,
+        obstacleHeight: 80,
         
         // Sync engine
         syncPollInterval: 350, // ms between Spotify position polls

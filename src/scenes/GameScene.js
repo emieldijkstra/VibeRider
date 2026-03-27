@@ -53,7 +53,7 @@ class GameScene extends Phaser.Scene {
         this.ground.add(groundTile);
 
         // ── Player ───────────────────────────────────────────────
-        this.player = new Player(this, 160, groundY - 30);
+        this.player = new Player(this, 160, groundY - 14);
         // Collider between the player's physics body and ground
         this.physics.add.collider(this.player.body, this.ground);
 
@@ -143,8 +143,12 @@ class GameScene extends Phaser.Scene {
 
         const W = this.scale.width;
         const groundY = VIBE_CONFIG.game.groundLevel;
+        const obsHeight = obstacleData.height || VIBE_CONFIG.game.obstacleHeight;
 
-        const ob = new Obstacle(this, W + 80, groundY - (obstacleData.height || 150) / 2, obstacleData);
+        // Spawn obstacle so its bottom sits at ground level
+        const obsY = groundY - (obsHeight / 2);
+
+        const ob = new Obstacle(this, W + 80, obsY, obstacleData);
         this.physics.add.collider(ob, this.ground);
         this.obstacles.push(ob);
     }
